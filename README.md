@@ -2,13 +2,10 @@
 Sitio web que permite realizar busqueda de versiculos de la biblia del nuevo y antiguo testamento
 
 # Como Arrancar
-Ejecutar los siguientes comandos en el siguiente orden
+Ejecutar los siguientes comandos en el siguiente orden en caso de no tener el .venv
 - cd PaginaWeb
-- pip install scikit-learn
-- pip install mysqlclient
-- npm install bootstrap jquery popper.js
-- pip install django-bootstrap4
-- pip install requests
-- pip install nltk
+- py -3 -m venv .venv
+- .venv/Scripts/activate
+- pip install -r Librerias.txt
 - cd buscador
 - python manage.py runserver
