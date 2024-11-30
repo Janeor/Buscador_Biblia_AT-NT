@@ -7,9 +7,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-def buscar_unidades_pensamientoDHH(parrafo, similitudUsuario):
+def buscar_unidades_pensamientoDHH(parrafo, similitudUsuario, biblia):
     # Obtener versículos desde la API usando la palabra clave y sus sinónimos
-    versiculos = buscar_versiculos_con_sinonimos(parrafo)
+    versiculos = buscar_versiculos_con_sinonimos(parrafo,biblia)
     
     if not versiculos:
         print("No se encontraron versículos.")
@@ -47,26 +47,27 @@ def buscar_unidades_pensamientoDHH(parrafo, similitudUsuario):
         
     return unidades_similares
 
-def buscar_versiculos_con_sinonimos(parrafo):
+def buscar_versiculos_con_sinonimos(parrafo,biblia):
     palabras = word_tokenize(parrafo)
+    
     versiculos = []
 
     # Para cada palabra en el párrafo, obtiene versículos similares
     for palabra in palabras:
-        versiculos += buscar_versiculos(palabra)
+        versiculos += buscar_versiculos(palabra, biblia)
 
         # Obtener palabras similares a través de Word2Vec y buscar versículos para cada una
         sinonimos = obtener_sinonimos_word2vec(palabra)
         for sinonimo in sinonimos:
-            versiculos += buscar_versiculos(sinonimo)
+            versiculos += buscar_versiculos(sinonimo, biblia)
 
     # Eliminar duplicados de versículos
     versiculos_unicos = {v['id']: v for v in versiculos}.values()
     return list(versiculos_unicos)
 
-def buscar_versiculos(palabra):
+def buscar_versiculos(palabra,biblia):
     # Llamada a la API de la Biblia para obtener versículos por palabra
-    url = f"https://bible-api.deno.dev/api/read/nvi/search?q={palabra}"
+    url = f"https://bible-api.deno.dev/api/read/{biblia}/search?q={palabra}"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json().get('data', [])
@@ -109,11 +110,12 @@ def resultados(request):
     if request.method == 'GET' and 'q' in request.GET:
         query = request.GET.get('q', '').strip()
         similitud_usuario_str = request.GET.get('similitud', '').strip()
+        libro_seleccionado = request.GET.get('biblia', '').strip()  # Captura la biblia seleccionado
         try:
             similitud_usuario = float(similitud_usuario_str)
         except ValueError:
             similitud_usuario = 0.05
-        resultados = buscar_unidades_pensamientoDHH(query, similitud_usuario)
+        resultados = buscar_unidades_pensamientoDHH(query, similitud_usuario, libro_seleccionado)
         if not resultados:
             return render(request, 'unidades_pensamientoDHH/notfound.html', {'query': query})
         else:
